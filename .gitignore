@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.runtime/
+.playwright*/
+output/
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.log
+shopee-print-ext/
+vendor/
+.private-release-terms.json
+.env
+.env.*
+*.exe
+*.zip
+*.bak
+*.pdb
+__pycache__/
+# Historical local tooling is retained outside the shared project.
+installer/guide.html
+scripts/test-windows-installer.ps1
+scripts/verify-output.py
