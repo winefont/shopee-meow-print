@@ -15,8 +15,11 @@ $retained = foreach ($port in @(5178, 53178)) {
     try { Invoke-RestMethod "http://127.0.0.1:$port/__health" -TimeoutSec 2 } catch {}
 }
 $busy = @(Get-NetTCPConnection -State Listen | Select-Object -ExpandProperty LocalPort)
-$expectedPort = @(53178..53187 | Where-Object {$_ -notin $busy}) | Select-Object -First 1
-if (-not $expectedPort) { throw 'No free test port; no application was changed.' }
+$expectedPort = @(53178..53187 | Where-Object {
+    if ($_ -in $busy) { return $false }
+    $probe = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $_)
+    try { $probe.ExclusiveAddressUse=$true; $probe.Start(); return $true } catch { return $false } finally { $probe.Stop() }
+}) | Select-Object -First 1
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 @{owner='public-sharing-installer-test';root=$testRoot;disposable=$true;purpose='Public identity, install, launch, update, removal; synthetic files only'} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $testRoot 'owner.json') -Encoding UTF8
@@ -47,7 +50,7 @@ try {
     $record = Get-Content -LiteralPath (Join-Path $installRoot 'installed-files.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $marker = Get-Content -LiteralPath (Join-Path $installRoot '.runtime\server.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     Check 'public application identity and version' ($record.appId -eq 'shipping-workbench' -and $record.version -eq $version -and $record.state -eq 'complete')
-    Check 'existing service port automatically avoided' ($marker.port -eq $expectedPort)
+    Check 'existing service port automatically avoided' ($marker.port -notin $busy -and (-not $expectedPort -or $marker.port -eq $expectedPort))
     $health = Invoke-RestMethod "http://127.0.0.1:$($marker.port)/__health" -TimeoutSec 2
     Check 'public server uses bundled runtime' ($health.appId -eq 'shipping-workbench' -and $health.executable -eq (Join-Path $installRoot 'runtime\node.exe'))
     $badFiles = @($record.files | Where-Object {(Get-FileHash -LiteralPath (Join-Path $installRoot $_.path)).Hash -ne $_.sha256})

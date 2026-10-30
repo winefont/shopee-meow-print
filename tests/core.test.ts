@@ -14,7 +14,7 @@ const order = (id = '261020TEST001'): Order => ({
   id, tracking: 'TW1234567890A', products: parseProducts(productText, id), buyerNote: '', sellerNote: '',
 });
 const page = (orderId = '261020TEST001', tracking = 'TW1234567890A', index = 0): SourcePage => ({
-  index, orderId, tracking, bounds: { left: 0, bottom: 0, right: 210, top: 300 },
+  index, orderId, tracking, recipient: '測試收件人', bounds: { left: 0, bottom: 0, right: 210, top: 300 },
 });
 
 test('parses synthetic packing workbook without private fixtures', async () => {

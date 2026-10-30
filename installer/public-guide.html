@@ -4,24 +4,24 @@
 <title>蝦皮印單喵｜安裝與使用說明</title>
 <style>body{font:17px/1.8 "Microsoft JhengHei",sans-serif;color:#173b32;max-width:800px;margin:40px auto;padding:0 24px}h1{font-size:32px}h2{font-size:23px;margin-top:32px}strong{color:#163b32}li{margin:8px 0}code{background:#eef2ee;padding:3px 7px;border-radius:4px;overflow-wrap:anywhere}.note{background:#eff4ee;padding:16px 20px;border-radius:12px}.download{border:1px solid #e4c6af;background:#fff9f2;padding:18px 24px;border-radius:12px}.selected{color:#ce531f;font-weight:bold}.paw{width:36px;height:36px;vertical-align:middle;fill:#db8d69}table{border-collapse:collapse;width:100%}td,th{border:1px solid #d8e4dc;padding:9px;text-align:left}th{background:#edf5ef}@media print{body{font-size:11pt;margin:0}h2{break-after:avoid}table,.download{break-inside:avoid}}</style>
 <h1><svg class="paw" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="14" cy="24" rx="7" ry="10"/><ellipse cx="27" cy="13" rx="7" ry="10"/><ellipse cx="42" cy="14" rx="7" ry="10"/><ellipse cx="53" cy="28" rx="7" ry="10"/><path d="M18 43C20 30 33 26 41 35C46 40 53 49 46 55C41 60 35 54 30 55C19 61 11 54 18 43Z"/></svg> 蝦皮印單喵</h1>
-<p>Shopee Meow Print v0.4.0 · 一份 PDF，連續印好寄件單與揀貨單。</p>
+<p>Shopee Meow Print v0.6.0 · 多份 PDF，合併印好寄件單與揀貨單。</p>
 <p>適用 100 × 150 mm 熱感標籤紙。本工具為獨立開發，非蝦皮官方產品。檔案只在本機瀏覽器處理，不上傳、不需蝦皮密碼或 API 金鑰。</p>
 <h2>1. 安裝一次，之後點貓掌捷徑</h2>
-<ol><li>準備 Windows 10／11 64 位元電腦、Edge 或 Chrome，以及已安裝驅動的標籤印表機。</li><li>雙擊 <strong>ShopeeMeowPrint-Setup-0.4.0-Windows-x64.exe</strong>。安裝完成後會建立桌面「蝦皮印單喵」捷徑並開啟工具，不必解壓縮或執行 CMD。</li><li>安裝檔已包含執行環境、PDF／Excel 程式庫與中文字型，不用另裝 Node.js、Python 或 Docker。</li></ol>
+<ol><li>準備 Windows 10／11 64 位元電腦、Edge 或 Chrome，以及已安裝驅動的標籤印表機。</li><li>雙擊 <strong>ShopeeMeowPrint-Setup-0.6.0-Windows-x64.exe</strong>。安裝完成後會建立桌面「蝦皮印單喵」捷徑並開啟工具，不必解壓縮或執行 CMD。</li><li>安裝檔已包含執行環境、PDF／Excel 程式庫與中文字型，不用另裝 Node.js、Python 或 Docker。</li></ol>
 <p>安裝在目前使用者的 <code>%LOCALAPPDATA%\ShippingWorkbench</code>，不需管理員權限、不自動隨開機啟動。沿用舊分享版安裝位置，以便直接更新。安裝檔尚未數位簽章，Windows 可能顯示未知的發行者；請確認檔案來源，受公司政策管理的電腦請洽管理員。</p>
 <h2>2. 在蝦皮下載「寄件單+裝箱單」</h2>
 <div class="download"><strong>蝦皮賣家中心 → 我的銷售 → 批次出貨 → 下載出貨文件</strong><ol><li>勾選本次出貨的訂單，開啟「批次下載」。</li><li class="selected">勾選「寄件單+裝箱單」，選擇「一般列印」（A4）。</li><li>按「下載所選文件」，取得一份合併 PDF。</li></ol><p>選項示意：<br>□ 揀貨單<br><span class="selected">☑ 寄件單+裝箱單</span><br>□ 寄件單<br>一般列印 · PDF</p></div>
-<p>請保留原始下載檔；不要掃描、轉圖片、重新列印成 PDF 或修改內容。單獨的寄件單、揀貨單或裝箱單不能用於單一 PDF 模式。程式操作畫面也內嵌上述說明，可隨時展開查看。</p>
-<h2>3. 匯入一份 PDF，下載標籤</h2>
-<ol><li>保留預設「單一 PDF（推薦）」模式，按「選擇 PDF 檔案」或將 PDF 拖入欄位。單檔最多 30 MB、每批最多 500 頁。</li><li>按「產生出貨標籤」。完成後核對訂單數、總件數、頁數、商品、貨號與規格；左右箭頭可切換訂單預覽。</li><li>按「下載合成結果.pdf」或「開啟 PDF／列印」。每筆依序為寄件單、揀貨單；較長明細會接續同筆訂單的揀貨頁。</li><li>下一批按「清除本批」後重新匯入。一般長度的五種商品可放在一張揀貨單；超長名稱或備註會續頁，不省略內容。</li></ol>
-<div class="note">單一 PDF 模式只列印原 PDF 已有的內容；未提供的賣家備註不會加入。需要 Excel 的賣家備註時，可切換「PDF＋Excel（備用）」，匯入同一批的獨立寄件單 PDF 和裝箱單 XLSX。切換模式會清除目前匯入內容。</div>
+<p>請保留原始下載檔；不要掃描、轉圖片、重新列印成 PDF 或修改內容。單獨的寄件單、揀貨單或裝箱單不能用於PDF 批次模式。程式操作畫面也內嵌上述說明，可隨時展開查看。</p>
+<h2>3. 匯入多份 PDF，合併下載標籤</h2>
+<ol><li>保留預設「PDF 批次匯入（推薦）」模式，多選或拖入不同物流的 PDF，可繼續加入、用箭頭調整順序或移除。單檔最多 30 MB，整批最多 100 MB、20 份 PDF、合計 500 頁。</li><li>按「產生出貨標籤」。完成後核對訂單數、總件數、頁數、商品、貨號與規格；左右箭頭可切換訂單預覽。</li><li>按「下載合成結果.pdf」或「開啟 PDF／列印」。每筆依序為寄件單、揀貨單；較長明細會接續同筆訂單的揀貨頁。</li><li>下一批按「清除本批」後重新匯入。揀貨單採黑框表格，列收件人、訂單編號、品名、規格／貨號、數量及備註，不列金額與訂單條碼；少量商品不放大字體。一般長度的五種商品可放在一張揀貨單；超長名稱或備註會續頁，不省略內容。</li></ol>
+<div class="note">PDF 批次模式只列印原 PDF 已有的內容；未提供的賣家備註不會加入。需要 Excel 的賣家備註時，可切換「PDF＋Excel（備用）」，匯入同一批的獨立寄件單 PDF 和裝箱單 XLSX。切換模式會清除目前匯入內容。</div>
 <h2>4. XP-420B／100 × 150 mm 列印</h2>
 <p>列印產生的 <strong>合成結果.pdf</strong>，不要直接列印工具網頁或本說明。按 Ctrl + P；需要完整驅動選項時可用 Ctrl + Shift + P 開啟系統列印視窗。</p>
-<table><tr><th>項目</th><th>設定</th></tr><tr><td>紙張</td><td>寬 100 mm × 高 150 mm（10 × 15 公分）</td></tr><tr><td>方向與縮放</td><td>直式、實際大小／100%；不要符合頁面或縮小</td></tr><tr><td>頁數與順序</td><td>每張紙 1 頁、單面、1 份、原始順序，不反向</td></tr><tr><td>先試印</td><td>第一筆完整訂單，通常第 1～2 頁；如有續頁也一起印</td></tr></table>
-<p>找不到紙張尺寸時，到 Windows 印表機的「列印喜好設定／內容」新增 100 × 150 mm，再重新開啟列印視窗。4 × 6 英吋是 101.6 × 152.4 mm，兩者不完全相同。</p>
+<table><tr><th>項目</th><th>設定</th></tr><tr><td>紙張</td><td>依耗材選 100 mm × 150 mm，或 4 × 6 吋（101.6 × 152.4 mm）</td></tr><tr><td>方向與縮放</td><td>直式、實際大小／100%；不要符合頁面或縮小</td></tr><tr><td>頁數與順序</td><td>每張紙 1 頁、單面、1 份、原始順序，不反向</td></tr><tr><td>先試印</td><td>第一筆完整訂單，通常第 1～2 頁；如有續頁也一起印</td></tr></table>
+<p>寄件單等比例放大、保留約 2.5 mm 邊界；方形原單仍有上下留白。若整頁內容偏小，請確認 PDF 視窗與驅動選相同紙張、100%、每張紙 1 頁。</p><p>使用 4 × 6 吋耗材時，可直接選驅動的「4 x 6」，以實際大小 100% 列印。使用 100 × 150 mm 耗材但找不到尺寸時，才在「列印喜好設定／內容」新增對應紙張。</p>
 <p>先確認四邊完整、貨號與數量可讀、條碼和 QR Code 可掃描，且不跳張，再印整批。跳張時依印表機手冊做紙張／間隙校正。實機列印效果需自行試印。</p>
 <h2>支援範圍與資料保存</h2>
-<p>目前已驗證蝦皮店到店「標準配送／門市交寄」、一般列印 A4、每頁一筆的「寄件單+裝箱單」文字 PDF。重複訂單、拆包裹、跨頁商品表、其他物流版型或無法可靠解析時會停止產生，請依畫面提示確認，不會猜測配對。</p>
+<p>已驗證蝦皮店到店及新竹貨運的 A4「寄件單+裝箱單」。全家、7-11 已參考成品樣式做模擬 A4 測試，仍待蝦皮原始 A4 實單驗證。收件人必須有可讀的欄名與姓名；圖片、未標欄名或無法確認時顯示「請見寄件單」並提醒，不猜填。物流資訊保留於原寄件單。任一檔案有編號衝突、跨頁明細或無法解析時會整批停止，不默默略過訂單。請先核對預覽與試印。</p>
 <p>備用模式支援舊版單張寄件單 PDF 與包含 <code>orders</code> 工作表的裝箱單 XLSX。Excel 請勿刪改欄位或轉成 CSV。</p>
 <p>「已備妥離線使用」表示程式與字型已快取；訂單不存入快取。清除本批或關閉分頁後不保留匯入資料，已下載的 PDF 留在你選擇的資料夾。每台電腦獨立使用，不會同步訂單。</p>
 <h2>關閉、更新、分享與解除安裝</h2>

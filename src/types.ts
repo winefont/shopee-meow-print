@@ -16,6 +16,9 @@ export interface Order {
 
 export interface SourcePage {
   index: number;
+  recipient?: string;
+  fileName?: string;
+  layout?: 'shopee' | 'general';
   orderId: string;
   tracking: string;
   bounds: { left: number; bottom: number; right: number; top: number };

@@ -36,6 +36,22 @@ try {
             } finally { $connection.AsyncWaitHandle.Close() }
         } catch { return $false } finally { $client.Close() }
     }
+    function Test-PortBindable([int]$Candidate) {
+        $listener = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $Candidate)
+        try {
+            $listener.ExclusiveAddressUse = $true
+            $listener.Start()
+            return $true
+        } catch { return $false } finally { $listener.Stop() }
+    }
+    function Get-SystemAvailablePort {
+        $listener = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, 0)
+        try {
+            $listener.ExclusiveAddressUse = $true
+            $listener.Start()
+            return ([Net.IPEndPoint]$listener.LocalEndpoint).Port
+        } finally { $listener.Stop() }
+    }
 
     $candidates = @()
     if (-not $explicitPort) {
@@ -54,6 +70,11 @@ try {
             }
         }
         $candidates += 53178..53187
+        # Docker/WSL/Windows can reserve the entire default range without a
+        # listener. Ask the OS for fallback ports instead of changing its rules.
+        for ($portAttempt = 0; $portAttempt -lt 3; $portAttempt++) {
+            $candidates += Get-SystemAvailablePort
+        }
     } else { $candidates = @($Port) }
     $candidates = @($candidates | Select-Object -Unique)
     $health = $null
@@ -63,6 +84,7 @@ try {
             if ($health) { break }
             continue
         }
+        if (-not (Test-PortBindable $candidate)) { continue }
         if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'dist\index.html'))) { throw 'Built files are missing. Please reinstall the complete Windows package.' }
         $nodePath = Join-Path $projectRoot 'runtime\node.exe'
         if (-not (Test-Path -LiteralPath $nodePath)) {

@@ -1,6 +1,7 @@
 import * as pdfjs from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { InputError, type SourcePage } from './types';
+import { readRecipient } from './recipient';
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 export { pdfjs };
@@ -62,11 +63,14 @@ export async function readShipping(bytes: Uint8Array, progress: (message: string
         }
       }
       if (right < left || bottom < top) throw new InputError([`寄件單第 ${n} 頁是空白頁。`]);
-      const padding = Math.ceil(3 / 25.4 * 72 * 2);
+      const padding = Math.ceil(1.5 / 25.4 * 72 * 2);
       const p1 = viewport.convertToPdfPoint(Math.max(0, left - padding), Math.max(0, top - padding));
       const p2 = viewport.convertToPdfPoint(Math.min(viewport.width, right + 1 + padding), Math.min(viewport.height, bottom + 1 + padding));
       pages.push({
         index: n - 1, orderId: ids[0], tracking: trackings[0],
+        recipient: readRecipient(content.items.flatMap(item => 'str' in item ? [{
+          str: item.str, x: item.transform[4], y: item.transform[5], width: item.width, height: item.height,
+        }] : [])),
         bounds: { left: Math.min(p1[0], p2[0]), bottom: Math.min(p1[1], p2[1]), right: Math.max(p1[0], p2[0]), top: Math.max(p1[1], p2[1]) },
       });
       canvas.width = canvas.height = 0;

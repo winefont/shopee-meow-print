@@ -1,4 +1,5 @@
 import { InputError, type Order } from './types';
+import { readRecipient } from './recipient';
 
 export type TextRun = { str: string; x: number; y: number; width: number; height: number; fontName: string };
 export type FontWidths = Map<string, Map<string, number>>;
@@ -58,10 +59,22 @@ export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: nu
   });
   if (headers.some((h, i) => Math.abs(h.y - headers[0].y) > 3 || (i > 0 && h.x - headers[i - 1].x < 30))) fail('商品欄位位置異常。');
   const headerY = headers[0].y;
-  const shippingText = compact(runs.filter(run => run.y > headerY + 30).map(run => run.str).join(''));
-  const ids = [...new Set([...shippingText.matchAll(/蝦皮訂單編號[:：]?(\d{6}[A-Z0-9]{6,20})/g)].map(m => m[1]))];
-  const tracking = [...new Set([...shippingText.matchAll(/寄件編號[:：]?([A-Z0-9-]{6,50})/g)].map(m => m[1]))];
-  if (ids.length !== 1 || tracking.length !== 1 || !shippingText.includes('門市交寄') || !shippingText.includes('標準配送')) fail('未確認唯一的訂單及物流編號，或物流版型尚未支援。');
+  // Some carriers embed the entire shipping label as an image. Their order ID
+  // is still present above the packing table; preserve the label, never invent
+  // its tracking number or try to reconstruct its barcode from OCR.
+  const headingRuns = runs.filter(run => run.y > headerY + 3);
+  const shippingText = compact(headingRuns.map(run => run.str.normalize('NFKC')).join(''));
+  const idMatches = [...shippingText.matchAll(/(?:(蝦皮|寄貨))?訂單編號(?:[（(](單)[）)])?[:：ÿ]?(\d{6}[A-Z0-9]{6,20})/g)];
+  // A carrier's numeric order number is not the Shopee order ID. Explicit
+  // Shopee/packing labels are authoritative; generic IDs must be alphanumeric.
+  const ids = [...new Set(idMatches.filter(m => m[1] || m[2] || /[A-Z]/.test(m[3])).map(m => m[3]))];
+  const tracking = [...new Set([...shippingText.matchAll(/(?:寄件編號|物流編號|物流單號|寄件單號|貨運單號|託運單號|交貨便服務代碼)[:：ÿ]?([A-Z0-9-]{6,50})/g)].map(m => m[1]))];
+  if (ids.length !== 1 || tracking.length > 1) fail('無法確認唯一的訂單編號，或寄件單與裝箱單的編號不一致。');
+  const layout: 'shopee' | 'general' = shippingText.includes('門市交寄') && shippingText.includes('標準配送') ? 'shopee' : 'general';
+  if (layout === 'shopee' && tracking.length !== 1) fail('店到店寄件單缺少物流編號，請重新下載原始 PDF。');
+  const packingTitles = headingRuns.filter(run => compact(run.str) === '裝箱單' && run.y < height * 0.65);
+  const shippingBottomY = Math.max(headerY + 30, ...packingTitles.map(run => run.y + run.height + 8));
+  const recipient = readRecipient(runs.filter(run => run.y > shippingBottomY && run.x < width * 0.6));
   const notes = runs.filter(run => compact(run.str).startsWith('買家備註') && run.y < headerY);
   if (notes.length !== 1) fail('無法確認商品表格結尾，可能有跨頁或不完整明細。');
   const note = notes[0];
@@ -85,12 +98,13 @@ export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: nu
   const buyerNote = readCell(glyphs, 0, width, note.y, seller?.y ?? 12).replace(/^買家備註\s*[:：]?\s*/, '');
   const sellerNote = seller ? readCell(glyphs, 0, width, seller.y, 12).replace(/^賣家備註\s*[:：]?\s*/, '') : '';
   if (buyerNote.length > 5000 || sellerNote.length > 5000) fail('備註過長。');
-  const order: Order = { id: ids[0], tracking: tracking[0], products, buyerNote, sellerNote };
-  return { order, headerY };
+  const order: Order = { id: ids[0], tracking: tracking[0] ?? '', products, buyerNote, sellerNote };
+  return { order, recipient, headerY, shippingBottomY, layout };
 }
 
 export function ensureUniqueOrders(orders: Order[]) {
-  if (new Set(orders.map(o => o.id)).size !== orders.length || new Set(orders.map(o => o.tracking)).size !== orders.length) {
+  const trackings = orders.map(o => o.tracking).filter(Boolean);
+  if (new Set(orders.map(o => o.id)).size !== orders.length || new Set(trackings).size !== trackings.length) {
     throw new InputError(['PDF 含重複訂單或物流編號。可能是重複下載、同單拆包裹或跨頁明細，請分批確認；本批未產生標籤。']);
   }
 }
