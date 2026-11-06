@@ -49,12 +49,62 @@ function readCell(glyphs: Glyph[], left: number, right: number, top: number, bot
   return values.join(sku ? '' : '\n').trim();
 }
 
-export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number) {
+function readIdentity(runs: TextRun[], pageNumber: number) {
+  const text = compact(runs.map(run => run.str.normalize('NFKC')).join(''));
+  const matches = [...text.matchAll(/(?:(蝦皮|寄貨))?訂單編號(?:[（(](單)[）)])?[:：ÿ]?(\d{6}[A-Z0-9]{6,20})/g)];
+  const ids = [...new Set(matches.filter(m => m[1] || m[2] || /[A-Z]/.test(m[3])).map(m => m[3]))];
+  const tracking = [...new Set([...text.matchAll(/(?:寄件編號|物流編號|物流單號|寄件單號|貨運單號|託運單號|交貨便服務代碼)[:：ÿ]?([A-Z0-9-]{6,50})/g)].map(m => m[1]))];
+  if (ids.length !== 1 || tracking.length > 1) {
+    throw new InputError([`PDF 第 ${pageNumber} 頁：無法確認唯一的訂單編號，或寄件單與裝箱單的編號不一致。`]);
+  }
+  // Preserve visual lines and separators here: compacting unrelated PDF items
+  // can turn "package 1" followed by a carrier's "834" into "package1834".
+  const lines: TextRun[][] = [];
+  for (const run of runs) {
+    let line = lines.find(items => Math.abs(items[0].y - run.y) < 2);
+    if (!line) { line = []; lines.push(line); }
+    line.push(run);
+  }
+  const packages = lines.flatMap(line => [...line.sort((a, b) => a.x - b.x)
+    .map(run => run.str.normalize('NFKC')).join(' ').matchAll(/\bpackage\s*(\d+)(?:\s*[/／]\s*(\d+))?/gi)]);
+  if (packages.some(m => Number(m[1]) !== 1 || (m[2] && Number(m[2]) !== 1))) {
+    throw new InputError([`PDF 第 ${pageNumber} 頁：不支援同一訂單拆成多個包裹，請先分別確認原始出貨文件。`]);
+  }
+  return { text, id: ids[0], tracking: tracking[0] ?? '' };
+}
+
+export type IncomingPageKind = 'combined' | 'shipping' | 'packing';
+
+/** Classify by actual table position, never by a filename or neighbouring page. */
+export function incomingPageKind(runs: TextRun[], height: number): IncomingPageKind {
+  const nameHeaders = runs.filter(run => compact(run.str) === '商品名稱');
+  const table = nameHeaders.filter(candidate => headings.every(heading =>
+    runs.some(run => compact(run.str) === heading && Math.abs(run.y - candidate.y) <= 3)));
+  if (table.length === 1) return table[0].y >= height * 0.65 ? 'packing' : 'combined';
+  const tableRuns = runs.filter(run => ['主商品貨號', '商品名稱', '商品選項貨號', '商品規格名稱'].includes(compact(run.str)));
+  if (tableRuns.length) return tableRuns.some(run => run.y >= height * 0.65) ? 'packing' : 'combined';
+  if (runs.some(run => ['商品列表', '裝箱單'].includes(compact(run.str)))) return 'packing';
+  return 'shipping';
+}
+
+/** Standalone original A4 7-Eleven labels have a readable Shopee ID and service code. */
+export function parseStandaloneShippingPage(runs: TextRun[], width: number, height: number, pageNumber: number) {
+  const fail = (message: string): never => { throw new InputError([`PDF 第 ${pageNumber} 頁：${message}`]); };
+  if (width < 560 || width > 630 || height < 790 || height > 880) fail('請使用蝦皮直接下載的一般列印 A4 PDF。');
+  const identity = readIdentity(runs, pageNumber);
+  if (!identity.text.includes('交貨便服務代碼') || !identity.tracking) {
+    fail('這份文件沒有商品表，也不是已支援的 7-11 獨立寄件單。請加入原始「寄件單+裝箱單」，或同批的 7-11 寄件單與裝箱單 PDF。');
+  }
+  return { orderId: identity.id, tracking: identity.tracking,
+    recipient: readRecipient(runs.filter(run => run.x < width * 0.6)), layout: 'seven-eleven' as const };
+}
+
+function parsePackingLayout(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number, standalone: boolean) {
   const fail = (message: string): never => { throw new InputError([`PDF 第 ${pageNumber} 頁：${message}`]); };
   if (width < 560 || width > 630 || height < 790 || height > 880) fail('請使用「寄件單+裝箱單」的一般列印 A4 PDF。');
   const headers = headings.map(heading => {
-    const found = runs.filter(run => compact(run.str) === heading && run.y < height * 0.65);
-    if (found.length !== 1) fail('找不到完整且唯一的商品表格。請下載「寄件單+裝箱單」；不支援掃描圖或跨頁明細。');
+    const found = runs.filter(run => compact(run.str) === heading && (standalone || run.y < height * 0.65));
+    if (found.length !== 1) fail('找不到完整且唯一的商品表格。請加入原始合併 PDF，或同批的寄件單與裝箱單 PDF；不支援掃描圖或跨頁明細。');
     return found[0];
   });
   if (headers.some((h, i) => Math.abs(h.y - headers[0].y) > 3 || (i > 0 && h.x - headers[i - 1].x < 30))) fail('商品欄位位置異常。');
@@ -63,15 +113,10 @@ export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: nu
   // is still present above the packing table; preserve the label, never invent
   // its tracking number or try to reconstruct its barcode from OCR.
   const headingRuns = runs.filter(run => run.y > headerY + 3);
-  const shippingText = compact(headingRuns.map(run => run.str.normalize('NFKC')).join(''));
-  const idMatches = [...shippingText.matchAll(/(?:(蝦皮|寄貨))?訂單編號(?:[（(](單)[）)])?[:：ÿ]?(\d{6}[A-Z0-9]{6,20})/g)];
-  // A carrier's numeric order number is not the Shopee order ID. Explicit
-  // Shopee/packing labels are authoritative; generic IDs must be alphanumeric.
-  const ids = [...new Set(idMatches.filter(m => m[1] || m[2] || /[A-Z]/.test(m[3])).map(m => m[3]))];
-  const tracking = [...new Set([...shippingText.matchAll(/(?:寄件編號|物流編號|物流單號|寄件單號|貨運單號|託運單號|交貨便服務代碼)[:：ÿ]?([A-Z0-9-]{6,50})/g)].map(m => m[1]))];
-  if (ids.length !== 1 || tracking.length > 1) fail('無法確認唯一的訂單編號，或寄件單與裝箱單的編號不一致。');
+  const identity = readIdentity(headingRuns, pageNumber);
+  const shippingText = identity.text;
   const layout: 'shopee' | 'general' = shippingText.includes('門市交寄') && shippingText.includes('標準配送') ? 'shopee' : 'general';
-  if (layout === 'shopee' && tracking.length !== 1) fail('店到店寄件單缺少物流編號，請重新下載原始 PDF。');
+  if (layout === 'shopee' && !identity.tracking) fail('店到店寄件單缺少物流編號，請重新下載原始 PDF。');
   const packingTitles = headingRuns.filter(run => compact(run.str) === '裝箱單' && run.y < height * 0.65);
   const shippingBottomY = Math.max(headerY + 30, ...packingTitles.map(run => run.y + run.height + 8));
   const recipient = readRecipient(runs.filter(run => run.y > shippingBottomY && run.x < width * 0.6));
@@ -98,8 +143,16 @@ export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: nu
   const buyerNote = readCell(glyphs, 0, width, note.y, seller?.y ?? 12).replace(/^買家備註\s*[:：]?\s*/, '');
   const sellerNote = seller ? readCell(glyphs, 0, width, seller.y, 12).replace(/^賣家備註\s*[:：]?\s*/, '') : '';
   if (buyerNote.length > 5000 || sellerNote.length > 5000) fail('備註過長。');
-  const order: Order = { id: ids[0], tracking: tracking[0] ?? '', products, buyerNote, sellerNote };
+  const order: Order = { id: identity.id, tracking: identity.tracking, products, buyerNote, sellerNote };
   return { order, recipient, headerY, shippingBottomY, layout };
+}
+
+export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number) {
+  return parsePackingLayout(runs, widths, width, height, pageNumber, false);
+}
+
+export function parseStandalonePackingPage(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number) {
+  return parsePackingLayout(runs, widths, width, height, pageNumber, true).order;
 }
 
 export function ensureUniqueOrders(orders: Order[]) {

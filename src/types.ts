@@ -18,7 +18,8 @@ export interface SourcePage {
   index: number;
   recipient?: string;
   fileName?: string;
-  layout?: 'shopee' | 'general';
+  layout?: 'shopee' | 'general' | 'seven-eleven';
+  packingFileName?: string;
   orderId: string;
   tracking: string;
   bounds: { left: number; bottom: number; right: number; top: number };

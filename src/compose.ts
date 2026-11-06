@@ -145,9 +145,9 @@ export async function composePdf(sourceBytes: Uint8Array, pairs: Pair[], fontByt
   if (missing.length) throw new InputError([`商品或備註含目前字型不支援的字元：${missing.slice(0, 10).join(' ')}。為避免漏印，請先調整這些字元。`]);
   const groups: PageGroup[] = [];
   const warnings: string[] = [];
-  if (pairs.some(pair => pair.source.layout === 'general')) warnings.push('本批含通用 A4 版型：保留左上角原寄件單，同頁商品表轉為揀貨單。全家、7-11 已做樣式與模擬 A4 測試，仍待蝦皮原始 A4 實單驗證，首次請核對預覽及試印。');
+  if (pairs.some(pair => pair.source.layout === 'general')) warnings.push('本批含通用 A4 版型，會保留原寄件單。全家仍僅做樣式與模擬 A4 測試，首次請核對預覽及試印。');
   if (pairs.some(pair => !pair.source.recipient)) warnings.push('部分寄件單的收件人是圖片、未標示欄名或文字無法可靠讀取，揀貨單已標示「請見寄件單」，請核對同組原寄件單。');
-  if (pairs.some(pair => !pair.order.tracking)) warnings.push('部分版型沒有可辨識的物流編號，以同頁訂單編號配對，物流資訊保留於原寄件單。');
+  if (pairs.some(pair => !pair.order.tracking)) warnings.push('部分版型沒有可辨識的物流編號，以唯一訂單編號配對，物流資訊保留於原寄件單。');
   for (const [i, pair] of pairs.entries()) {
     const chunks = paginate(pickingRows(pair, font));
     const number = String(i + 1).padStart(2, '0');

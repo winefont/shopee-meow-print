@@ -20,7 +20,7 @@ export function findShippingInk(data: Uint8ClampedArray, width: number, height: 
   }
   const w = (right - left + 1) / scale, h = (bottom - top + 1) / scale;
   if (w < 150 || w > 330 || h < 200 || h > 450 || bottom >= cutoff - 2 || right > width * 0.60) {
-    throw new InputError(['無法安全分離 A4 左上角寄件單。請核對是否為每頁一筆的「寄件單+裝箱單」，本批未產生標籤。']);
+    throw new InputError(['無法安全分離 A4 左上角寄件單。請使用每頁一筆的原始合併 PDF 或 7-11 獨立寄件單，本批未產生標籤。']);
   }
   return { left, right, top, bottom, cutoff };
 }
