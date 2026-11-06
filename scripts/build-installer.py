@@ -69,6 +69,8 @@ copy(node_dir / "LICENSE", payload / "runtime" / "LICENSE")
 
 from PIL import Image
 Image.open(ROOT / "public" / "icon-512.png").save(payload / "app.ico", sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+# A versioned icon path makes Windows refresh shortcuts without resetting its cache.
+copy(payload / "app.ico", payload / f"app-{version}.ico")
 # Preserve dependency license notices without shipping node_modules or order files.
 for source in (ROOT / "node_modules").rglob("*"):
     if source.is_file() and source.name.lower().split(".")[0] in {"license", "licence", "copying", "notice"}:
@@ -121,6 +123,7 @@ command = [
     str(compiler), "/nologo", "/target:winexe", "/platform:x64", "/optimize+", "/utf8output",
     f"/out:{executable}", f"/resource:{archive},{resource_name}",
     f"/win32icon:{payload / 'app.ico'}", f"/win32manifest:{setup_manifest}",
+    f"/resource:{ROOT / 'public' / 'icon-192.png'},ShopeeMeowPrint.BrandIcon.png",
     "/reference:System.dll", "/reference:System.Core.dll", "/reference:System.Drawing.dll",
     "/reference:System.Windows.Forms.dll", "/reference:System.IO.Compression.dll",
     str(setup_source), str(build_constants),

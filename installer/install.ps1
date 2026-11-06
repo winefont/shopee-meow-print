@@ -51,6 +51,9 @@ foreach ($file in $package.files) {
         }
     }
 }
+$iconRelative = 'app-' + $package.version + '.ico'
+if (@($package.files | Where-Object { $_.path -eq $iconRelative }).Count -ne 1) { throw 'Versioned app icon is missing.' }
+$iconPath = Resolve-AppFile $installRoot $iconRelative
 $shell = New-Object -ComObject WScript.Shell
 $desktopRoot = if ($ShortcutDirectory) { [IO.Path]::GetFullPath($ShortcutDirectory) } else { [Environment]::GetFolderPath('Desktop') }
 $menuRoot = if ($ShortcutDirectory) { Join-Path $desktopRoot 'Start Menu' } else { Join-Path ([Environment]::GetFolderPath('Programs')) '蝦皮印單喵' }
@@ -110,7 +113,7 @@ foreach ($entry in $shortcuts) {
     $shortcut.TargetPath = $powerShellPath
     $shortcut.Arguments = $entry.arguments
     $shortcut.WorkingDirectory = $installRoot
-    $shortcut.IconLocation = (Join-Path $installRoot 'app.ico') + ',0'
+    $shortcut.IconLocation = $iconPath + ',0'
     $shortcut.Save()
 }
 # Remove retired shortcuts only when their recorded target still belongs to this installation.
@@ -132,7 +135,7 @@ if (-not $NoRegistry) {
     $uninstallCommand = '"' + $powerShellPath + '" -NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $installRoot 'uninstall.ps1') + '"'
     foreach ($setting in @{
         DisplayName='蝦皮印單喵'; DisplayVersion=$package.version; Publisher='';
-        InstallLocation=$installRoot; DisplayIcon=(Join-Path $installRoot 'app.ico'); UninstallString=$uninstallCommand;
+        InstallLocation=$installRoot; DisplayIcon=$iconPath; UninstallString=$uninstallCommand;
         QuietUninstallString=($uninstallCommand + ' -Quiet')
     }.GetEnumerator()) { New-ItemProperty -LiteralPath $registryPath -Name $setting.Key -Value $setting.Value -PropertyType String -Force | Out-Null }
     New-ItemProperty -LiteralPath $registryPath -Name NoModify -Value 1 -PropertyType DWord -Force | Out-Null

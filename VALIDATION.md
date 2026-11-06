@@ -1,3 +1,14 @@
+# v0.7.1 branding validation - 2026-11-06
+
+- Replaced the footprint artwork with an image-generated cream/pink paw mascot. Updated app/favicons, PWA maskable artwork, header/help/empty-state visuals, Windows setup artwork, versioned shortcut icons, and guide branding. Parsing, matching, cropping and PDF composition source files are unchanged from v0.7.0.
+- All 28 automated tests, TypeScript and production/offline builds passed. The first test attempt failed inside the restricted Windows user-info sandbox before executing tests; the normal local execution passed.
+- Local update from v0.7.0 to v0.7.1 completed successfully. The installer removed its own extraction directory. The installed manifest and shortcut are verified separately in a local receipt.
+- The production browser displayed v0.7.1 with all four mascot/icon images loaded. Desktop layout was visually inspected; the 390 px responsive check reported 375 px document width and a 339 px input card, with no horizontal overflow. Old open tabs may keep the prior offline worker active until closed.
+- No new real-order browser conversion is claimed for this visual-only update: the browser file chooser timed out before selecting files. Existing v0.7.0 real-document verification remains below; synthetic pairing and layout tests were rerun successfully.
+- The two-page PDF guide was rendered and visually inspected. The sharing-package scanner inspected 272 package entries and found zero configured private-data matches; the installer payload contains no PDF/Excel order fixtures.
+- FamilyMart split-file support is not implemented: standalone shipping identification still requires a 7-Eleven service code. A reusable order-ID pairing layer and earlier simulated combined-page tests do not establish support for the actual FamilyMart download format.
+- User-authorized GitHub release preparation includes the verified installer, checksum, two-page PDF guide, standalone HTML guide and public validation summary. Original customer documents and local verification receipts remain excluded.
+
 # v0.7.0 validation - 2026-11-06
 
 - Mixed import now recognizes original combined A4 pages, standalone 7-Eleven A4 shipping labels, and standalone packing tables. The entire selection is paired by exact Shopee order ID and ordered by shipping-page position. Page offsets count every input page, including standalone packing pages.

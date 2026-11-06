@@ -2,13 +2,13 @@
   "id": "./",
   "name": "蝦皮印單喵",
   "short_name": "蝦皮印單喵",
-  "description": "單一 PDF 匯入，產生 100×150 mm 寄件單與揀貨單",
+  "description": "合併與分開 PDF 一起匯入，產生 100×150 mm 寄件單與揀貨單",
   "lang": "zh-Hant",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f5f1",
-  "theme_color": "#173b32",
+  "background_color": "#fff9f4",
+  "theme_color": "#235044",
   "icons": [
     {
       "src": "./icon-192.png",
@@ -20,7 +20,13 @@
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

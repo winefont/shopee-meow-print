@@ -297,12 +297,19 @@ internal sealed class SetupWindow : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        BackColor = Color.White;
+        BackColor = Color.FromArgb(255, 250, 246);
         Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
-        var paw = new PictureBox { Image = Icon.ToBitmap(), SizeMode = PictureBoxSizeMode.Zoom };
-        paw.SetBounds(28, 22, 54, 54);
+        Image pawImage = Icon.ToBitmap();
+        using (var brandStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShopeeMeowPrint.BrandIcon.png"))
+        {
+            if (brandStream != null)
+                using (var original = Image.FromStream(brandStream))
+                { pawImage.Dispose(); pawImage = new Bitmap(original); }
+        }
+        var paw = new PictureBox { Image = pawImage, SizeMode = PictureBoxSizeMode.Zoom };
+        paw.SetBounds(28, 18, 76, 76);
         Controls.Add(paw);
-        title.SetBounds(96, 26, 476, 38);
+        title.SetBounds(120, 32, 450, 38);
         title.Text = "正在安裝 蝦皮印單喵";
         title.Font = new Font(Font.FontFamily, 17, FontStyle.Bold);
         title.ForeColor = Color.FromArgb(23, 107, 83);

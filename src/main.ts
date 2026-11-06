@@ -9,14 +9,14 @@ import { InputError, type PageGroup } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
-  <header class="topbar"><div class="brand"><img src="./icon.svg" alt="" width="38" height="38"><div><strong>蝦皮印單喵</strong><span>SHOPEE MEOW PRINT</span></div></div>
+  <header class="topbar"><div class="brand"><img src="./icon-192.png" alt="" width="54" height="54"><div><strong>蝦皮印單喵</strong><span>SHOPEE MEOW PRINT</span></div></div>
     <div class="top-actions"><span id="offline-status" class="status-pill">檔案只在本機處理</span><button id="install" class="quiet" hidden>安裝到桌面</button></div>
   </header>
   <main>
-    <div class="heading"><div><p class="eyebrow">蝦皮出貨 · 100 × 150 mm</p><h1>多份 PDF，喵成一份出貨單。</h1><p class="intro">合併 PDF、7-11 分開下載的寄件單與裝箱單，都能一起匯入，依訂單編號逐單配好。</p></div><div class="printer"><img class="paw-accent" src="./paw.svg" alt="" width="40" height="40"><div><strong>Xprinter XP-420B</strong><span>10 × 15 公分熱感紙</span></div></div></div>
+    <div class="heading"><div><p class="eyebrow">蝦皮出貨 · 100 × 150 mm</p><h1>多份 PDF，喵成一份出貨單。</h1><p class="intro">合併 PDF、7-11 分開下載的寄件單與裝箱單，都能一起匯入，依訂單編號逐單配好。</p></div><div class="printer"><img class="paw-accent" src="./paw-mascot.png" alt="" width="72" height="72"><div><strong>Xprinter XP-420B</strong><span>10 × 15 公分熱感紙</span></div></div></div>
     <ol class="steps" aria-label="出貨流程"><li class="active" id="step-1"><b>1</b> 匯入檔案</li><li id="step-2"><b>2</b> 確認配對</li><li id="step-3"><b>3</b> 下載列印</li></ol>
     <details class="download-help" open>
-      <summary><img src="./paw.svg" alt="" width="22" height="22"> PDF 要去哪裡下載？</summary>
+      <summary><img src="./paw-mascot.png" alt="" width="34" height="34"> PDF 要去哪裡下載？</summary>
       <div class="help-content"><div><p class="help-route">蝦皮賣家中心 <b>→</b> 我的銷售 <b>→</b> 批次出貨 <b>→</b> 下載出貨文件</p>
       <ol><li>勾選這次要出貨的訂單，開啟「批次下載」。</li><li>可合併下載的物流選 <strong>「寄件單+裝箱單」</strong>，使用<strong>一般列印（A4）</strong>。<strong>7-11 若分開下載，請同時下載「寄件單 PDF」與「裝箱單 PDF」。</strong></li><li>把不同物流的合併 PDF，以及 7-11 的兩種 PDF <strong>全部一起拖到下方</strong>，不必手動合併檔案。</li></ol>
       <p class="help-note">以寄件單出現順序輸出「寄件單 → 揀貨單」；裝箱單放前或放後都會依訂單編號配對。漏加、重複或編號不一致時整批提示。已驗證店到店、新竹與 7-11 分開 PDF；全家仍待原始實單驗證。</p></div>
@@ -45,7 +45,7 @@ app.innerHTML = `
         <p class="privacy-note">檔案在瀏覽器內解析。訂單不會上傳；清除本批或關閉工具後，不保留匯入資料。</p>
       </aside>
       <section class="card result-card" aria-labelledby="result-title"><div class="section-title"><h2 id="result-title">列印前確認</h2><span>02</span></div>
-        <div id="empty-state" class="empty-state"><div class="sample-pair" aria-hidden="true"><div class="sample-label"><span>寄件單</span><i class="barcode"></i><i></i><i></i><b>01-1</b></div><div class="sample-label picking"><span>揀貨單</span><i></i><i></i><div class="sample-qty">× 2</div><b>01-2</b></div></div><h3>一張寄件，一張揀貨。</h3><p>配對後會在這裡顯示真實標籤。<br>同一筆訂單連續排列，拿起一組就能揀貨。</p><span class="support-note">店到店、新竹及 7-11 原始分開 PDF 已驗證。全家仍待原始實單驗證；長明細自動續頁。</span></div>
+        <div id="empty-state" class="empty-state"><div class="empty-mascot" aria-hidden="true"><img src="./paw-mascot.png" alt="" width="196" height="196"><span>準備好幫你印單囉</span></div><div class="pair-caption" aria-hidden="true">寄件單 <span>＋</span> 揀貨單</div><h3>一張寄件，一張揀貨。</h3><p>配對後會在這裡顯示真實標籤。<br>同一筆訂單連續排列，拿起一組就能揀貨。</p><span class="support-note">店到店、新竹及 7-11 原始分開 PDF 已驗證。全家仍待原始實單驗證；長明細自動續頁。</span></div>
         <div id="result" hidden>
           <div class="stats"><div><span>已配對訂單</span><strong id="order-count">0</strong></div><div><span>列印頁數</span><strong id="page-count">0</strong></div><div><span>商品總件數</span><strong id="quantity-count">0</strong></div></div>
           <div id="warnings" class="notice warning" role="status" hidden></div>
@@ -57,7 +57,7 @@ app.innerHTML = `
         </div>
       </section>
     </div>
-    <footer class="page-footer"><span>蝦皮印單喵 v0.7.0 · 純前端處理</span><span>獨立工具，非蝦皮官方產品 · 原始檔不會被修改</span></footer>
+    <footer class="page-footer"><span>蝦皮印單喵 v0.7.1 · 純前端處理</span><span>獨立工具，非蝦皮官方產品 · 原始檔不會被修改</span></footer>
   </main>`;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;

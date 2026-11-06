@@ -25,3 +25,33 @@ main{max-width:1320px;margin:0 auto;padding:38px 32px 24px}.heading{display:flex
 .file-actions { display: flex; gap: 4px; flex-shrink: 0; }
 .file-actions button { min-width: 28px; min-height: 32px; padding: 2px 6px; border: 1px solid #c8d9d0; border-radius: 6px; color: #176b53; background: #fff; }
 .file-actions button:disabled { opacity: .35; cursor: default; }
+
+
+/* Creamy paw mascot: the shipping controls keep their familiar layout. */
+:root{background:#fff9f4;color:#29443a;--green:#235044;--muted:#697b72;--border:#e7ddd3;--orange:#ab624c}
+.topbar{height:90px;background:#fffdfa;border-bottom-color:#ecdfd3}
+.brand{gap:13px}.brand img{width:54px;height:54px;border-radius:17px;flex-shrink:0}
+.brand strong{font-weight:750;letter-spacing:1.2px}.brand span{color:#7d8b7c}
+.top-actions{flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.status-pill{background:#f0f6ee;border-color:#d6e2d0;color:#506950}
+.quiet{border-radius:10px}.heading{align-items:center}.printer{border:0;border-radius:20px;background:#f0f4e9;padding:10px 19px 10px 12px;gap:12px;min-width:226px}
+.paw-accent{width:72px;height:72px;opacity:1;object-fit:contain;transform:rotate(-7deg)}
+.steps b{width:27px;height:27px;background:#f1e8df;color:#88776b}.steps .active b{background:#d67d6d;color:#fff}
+.card{border-radius:22px;box-shadow:0 5px 22px #805e3d06;background:#fffefa}
+.file-zone{border-radius:15px;background:#fff9f3;border-color:#dcc8b4}
+.file-zone.selected{background:#f3f8ef;border-color:#bdcdb1}.file-zone.dragging{background:#eaf4e0;border-color:#5c8257}
+.file-icon{border-radius:8px;background:#fce9df;border-color:#edd0bf;color:#965b42}
+.file-button{border-radius:10px;background:#fffefc}.primary{border-radius:13px;transition:background .15s,transform .15s}
+.primary:hover:not(:disabled){background:#316657;transform:translateY(-1px)}
+.primary:disabled{background:#849d8c}.secondary,.square,.file-actions button{border-radius:10px}
+.download-help{background:#fff1e8;border-color:#f0d7c7;border-radius:19px;padding-top:13px;padding-bottom:13px}
+.download-help>summary{color:#80503f}.download-help>summary>img{width:34px;height:34px;object-fit:contain;flex-shrink:0;transform:rotate(-9deg)}
+.download-example{border-radius:13px}.section-title>span{color:#b1967d}
+.empty-state{padding:15px 0 30px}.empty-mascot{display:flex;flex-direction:column;align-items:center;gap:4px;margin:2px auto 18px}
+.empty-mascot img{width:196px;height:196px;object-fit:contain}
+.empty-mascot>span{font-size:12px;color:#986a55;background:#fff0e6;border:1px solid #f2d9c9;border-radius:22px;padding:5px 14px}
+.pair-caption{display:inline-flex;align-items:center;gap:11px;margin-bottom:13px;font-size:12px;font-weight:600;color:#587056}
+.pair-caption>span{color:#bb7e65}.empty-state h3{font-size:20px;font-weight:650}.support-note{background:#f2f6ec;color:#64785d;border-radius:10px;margin-top:24px}
+.preview-grid{border-radius:14px}.notice{border-radius:12px}#mode{border-radius:10px}
+@media(max-width:760px){.topbar{height:auto;min-height:80px;padding:12px 18px;gap:10px}.brand img{width:46px;height:46px;border-radius:14px}.brand{gap:10px}.brand strong{font-size:16px}.top-actions{gap:5px}.card{border-radius:19px}.empty-mascot img{width:170px;height:170px}.empty-state{padding-top:4px}.download-help{padding:12px 15px}}
+@media(max-width:400px){.topbar{padding:10px 13px}.brand img{width:42px;height:42px}.brand strong{font-size:15px;letter-spacing:.5px}.status-pill{font-size:10px;padding:4px 7px}.download-help>summary{font-size:14px;gap:7px}.download-help>summary:after{font-size:9px}.empty-mascot img{width:160px;height:160px}}
