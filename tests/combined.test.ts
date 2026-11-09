@@ -122,10 +122,9 @@ test('crop excludes full-width packing separator and rejects content cut by the 
   assert.throws(() => findShippingInk(new Uint8ClampedArray(width * height * 4).fill(255), width, height, 1));
 });
 
-test('multi-file input enforces format, file count, total size and legacy single-file limits', () => {
+test('PDF batch input enforces format, file count, total size and individual size limits', () => {
   const pdf = { name: 'carrier.pdf', size: 1024 };
   assert.deepEqual(pdfSelectionIssues([pdf, { ...pdf, name: 'other.PDF' }]), []);
-  assert.ok(pdfSelectionIssues([pdf, pdf], true).length);
   assert.ok(pdfSelectionIssues(Array(21).fill(pdf)).length);
   assert.ok(pdfSelectionIssues([{ ...pdf, size: MAX_FILE_BYTES + 1 }]).length);
   assert.ok(pdfSelectionIssues(Array(5).fill({ ...pdf, size: MAX_BATCH_BYTES / 4 })).length);

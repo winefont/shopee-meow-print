@@ -17,7 +17,7 @@ const contentTypes = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.webmanifest': 'application/manifest+json',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.otf': 'font/otf', '.ttf': 'font/ttf',
-  '.woff': 'font/woff', '.woff2': 'font/woff2', '.wasm': 'application/wasm',
+  '.woff': 'font/woff', '.woff2': 'font/woff2', '.wasm': 'application/wasm', '.gz': 'application/gzip',
   '.bcmap': 'application/octet-stream', '.pfb': 'application/octet-stream', '.txt': 'text/plain; charset=utf-8',
 };
 const server = http.createServer(async (request, response) => {

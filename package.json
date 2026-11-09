@@ -1,19 +1,22 @@
 {
   "name": "shopee-meow-print",
   "private": true,
-  "version": "0.7.1",
+  "version": "0.8.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5178 --strictPort",
     "build": "tsc --noEmit && vite build && node scripts/build-offline.mjs",
     "start": "node scripts/serve.mjs",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "predev": "node scripts/prepare-ocr.mjs && node scripts/prepare-help.mjs",
+    "prebuild": "node scripts/prepare-ocr.mjs && node scripts/prepare-help.mjs"
   },
   "dependencies": {
+    "@tesseract.js-data/chi_tra": "1.0.0",
     "fontkit": "2.0.4",
     "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.4.299",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "tesseract.js": "7.0.0"
   },
   "devDependencies": {
     "@napi-rs/canvas": "1.0.11",

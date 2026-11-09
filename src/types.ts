@@ -18,7 +18,9 @@ export interface SourcePage {
   index: number;
   recipient?: string;
   fileName?: string;
-  layout?: 'shopee' | 'general' | 'seven-eleven';
+  layout?: 'shopee' | 'general' | 'seven-eleven' | 'familymart';
+  /** Zero-based quadrant; index remains the physical source PDF page. */
+  labelIndex?: number;
   packingFileName?: string;
   orderId: string;
   tracking: string;

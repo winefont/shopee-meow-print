@@ -6,7 +6,7 @@ $record = Get-Content -LiteralPath $recordPath -Raw -Encoding UTF8 | ConvertFrom
 if ($record.appId -ne 'shipping-workbench' -or $record.root -ne $installRoot) { throw 'Installation ownership record does not match.' }
 if (-not $Quiet) {
     Add-Type -AssemblyName System.Windows.Forms
-    $answer = [System.Windows.Forms.MessageBox]::Show('要解除安裝蝦皮印單喵嗎？已下載的 PDF、Excel 與其他個人檔案會保留。', '蝦皮印單喵', 'YesNo', 'Question')
+    $answer = [System.Windows.Forms.MessageBox]::Show('要解除安裝蝦皮印單喵嗎？已下載的 PDF 與其他個人檔案會保留。', '蝦皮印單喵', 'YesNo', 'Question')
     if ($answer -ne 'Yes') { exit 0 }
 }
 $targets = foreach ($file in $record.files) {

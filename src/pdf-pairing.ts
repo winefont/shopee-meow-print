@@ -38,7 +38,7 @@ export function pairDocumentPages(pages: readonly DocumentPage[]): Pair[] {
     }
     return { order: { ...order, tracking: source.tracking || order.tracking },
       source: { ...source, ...(entry.packingIndex !== source.index ? { packingFileName: entry.packingFileName ?? '同批裝箱單 PDF' } : {}) } };
-  }).sort((a, b) => a.source.index - b.source.index);
+  }).sort((a, b) => a.source.index - b.source.index || (a.source.labelIndex ?? 0) - (b.source.labelIndex ?? 0));
   ensureUniqueOrders(pairs.map(pair => pair.order));
   return pairs;
 }

@@ -1,4 +1,18 @@
-# v0.7.1 branding validation - 2026-11-06
+# v0.8.1 PDF-only workflow validation - 2026-11-09
+
+- Simplified the main screen and moved download instructions, pairing rules, printing guidance and privacy details into a separate local help page. Help is included in development, production, offline precaching and the installer from one HTML source.
+- Removed the PDF + Excel mode, workbook parser, Excel-only matcher and legacy shipping reader. Removed SheetJS from the dependency tree and package. Five retired Excel-only tests were removed; PDF composition fixtures now use plain typed objects. The main JavaScript bundle decreased from approximately 1,616.55 kB to 1,245.90 kB after removal.
+- All 29 remaining automated tests, TypeScript checking and production/offline builds passed. Coverage includes PDF limits, missing/duplicate/conflicting documents, matching order, five-product labels and continuation pages, and FamilyMart quadrant/identity guards.
+- FamilyMart original image-only A4 labels are split in row-major quadrant order, with blank cells skipped. Local Traditional Chinese OCR reads the explicit Shopee order-ID field twice and requires agreement; it does not guess ambiguous characters or match by packing order. The preceding local v0.8.0 validation used one supplied real order and a synthetic four-plus-one multi-page fixture. Source documents and private receipts are excluded from this repository.
+- Final installed v0.8.1 browser check: two synthetic PDFs, with reversed packing pages first, produced 5 matched orders / 10 pages / 15 units and two preview canvases per order. There is no import-mode selector. Opening help preserved the files and the output link. Help reloaded successfully while that tab's network was emulated offline; the override was then removed.
+- Desktop UI and a 390 px responsive layout were inspected; no horizontal overflow. The final desktop screenshot shows the PDF-only controls. Screenshots and synthetic document artifacts remain outside the repository.
+- In-place update from v0.8.0 succeeded. All 294 installed files matched their manifest; help is served locally and the obsolete Excel package is absent. Installer extraction cleanup succeeded. The existing shipping app remains available through its desktop shortcut.
+- Final public-package scan passed: 298 archive entries, zero configured private-identifier matches, and no source-order files. A separate source/installer check found no supplied real-order identifiers or common credential patterns. Both pages of the revised PDF guide were rendered and inspected.
+- Task-owned temporary preview services were stopped; installer build staging is disposable and cleaned after preserving the verified EXE, ZIP, checksum and guides. Unrelated services are untouched.
+
+No physical XP-420B print was sent in this UI update. Earlier real-document output checks remain separate from the final synthetic browser test.
+
+# Historical v0.7.1 branding validation - 2026-11-06
 
 - Replaced the footprint artwork with an image-generated cream/pink paw mascot. Updated app/favicons, PWA maskable artwork, header/help/empty-state visuals, Windows setup artwork, versioned shortcut icons, and guide branding. Parsing, matching, cropping and PDF composition source files are unchanged from v0.7.0.
 - All 28 automated tests, TypeScript and production/offline builds passed. The first test attempt failed inside the restricted Windows user-info sandbox before executing tests; the normal local execution passed.
