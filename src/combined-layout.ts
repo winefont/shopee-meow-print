@@ -96,7 +96,19 @@ export function parseStandaloneShippingPage(runs: TextRun[], width: number, heig
     fail('這份文件沒有商品表，也不是已支援的 7-11 獨立寄件單。請加入原始「寄件單+裝箱單」，或同批的 7-11 寄件單與裝箱單 PDF。');
   }
   return { orderId: identity.id, tracking: identity.tracking,
-    recipient: readRecipient(runs.filter(run => run.x < width * 0.6)), layout: 'seven-eleven' as const };
+    recipient: readRecipient(runs), layout: 'seven-eleven' as const };
+}
+
+/** Keep each printed cell's text separate before reading IDs, tracking or recipients. */
+export function splitDocumentRuns(runs: TextRun[], regions: { left: number; right: number; top: number; bottom: number }[], pageNumber: number) {
+  const groups: TextRun[][] = regions.map(() => []);
+  for (const run of runs.filter(run => run.str.trim())) {
+    const matches = regions.flatMap((region, index) => run.x >= region.left && run.x + run.width <= region.right &&
+      run.y >= region.bottom && run.y + run.height <= region.top ? [index] : []);
+    if (matches.length !== 1) throw new InputError([`PDF 第 ${pageNumber} 頁：文件文字跨越格線或位於無法確認的區域，本批未產生標籤。`]);
+    groups[matches[0]].push(run);
+  }
+  return groups;
 }
 
 function parsePackingLayout(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number, standalone: boolean) {
@@ -153,6 +165,20 @@ export function parseCombinedPage(runs: TextRun[], widths: FontWidths, width: nu
 
 export function parseStandalonePackingPage(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number) {
   return parsePackingLayout(runs, widths, width, height, pageNumber, true).order;
+}
+
+/** Separate the original two-up packing layout before reading either order's table or notes. */
+export function parseStandalonePackingPages(runs: TextRun[], widths: FontWidths, width: number, height: number, pageNumber: number) {
+  const names = runs.filter(run => compact(run.str) === '商品名稱');
+  if (names.length <= 1) return [parseStandalonePackingPage(runs, widths, width, height, pageNumber)];
+  if (names.length !== 2 || names.filter(run => run.y > height / 2).length !== 1) {
+    throw new InputError([`PDF 第 ${pageNumber} 頁：無法安全分離每筆裝箱單，請使用原始 A4 文件。`]);
+  }
+  const groups = splitDocumentRuns(runs, [
+    { left: 0, right: width, top: height, bottom: height / 2 },
+    { left: 0, right: width, top: height / 2, bottom: 0 },
+  ], pageNumber);
+  return groups.map(group => parseStandalonePackingPage(group, widths, width, height, pageNumber));
 }
 
 export function ensureUniqueOrders(orders: Order[]) {

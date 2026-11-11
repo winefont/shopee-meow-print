@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { incomingPageKind, parseStandalonePackingPage, parseStandaloneShippingPage, type TextRun } from '../src/combined-layout';
+import { incomingPageKind, parseStandalonePackingPage, parseStandalonePackingPages, parseStandaloneShippingPage, splitDocumentRuns, type TextRun } from '../src/combined-layout';
 import { pairDocumentPages, type DocumentPage } from '../src/pdf-pairing';
 import type { Order, SourcePage } from '../src/types';
 
@@ -61,6 +61,38 @@ test('reads a standalone 7-Eleven ID and service code without using the differen
   assert.equal(parsed.tracking, 'H12345678901');
   assert.equal(parsed.recipient, '測*人');
   assert.equal(parsed.layout, 'seven-eleven');
+});
+
+test('separates two 7-Eleven labels before reading each full ID, service code and recipient', () => {
+  const left = shippingFixture().runs;
+  const right = left.map(run => ({ ...run, x: run.x + 290,
+    str: run.str.replace('261106TEST001', '261106TEST002').replace('H12345678901', 'H98765432101').replace('測*人', '另*人') }));
+  const regions = [{ left: 0, right: 290, top: 842, bottom: 421 }, { left: 290, right: 595, top: 842, bottom: 421 }];
+  const groups = splitDocumentRuns([...right, ...left], regions, 1);
+  const parsed = groups.map(runs => parseStandaloneShippingPage(runs, 595, 842, 1));
+  assert.deepEqual(parsed.map(p => [p.orderId, p.tracking, p.recipient]), [
+    ['261106TEST001', 'H12345678901', '測*人'], ['261106TEST002', 'H98765432101', '另*人'],
+  ]);
+  assert.throws(() => splitDocumentRuns([...left, {...left[0], x: 285, width: 20}], regions, 1), /跨越格線/);
+  assert.throws(() => splitDocumentRuns([...left, {...left[0], y: 300}], regions, 1), /無法確認的區域/);
+  assert.throws(() => parseStandaloneShippingPage(groups[1].filter(r => !r.str.includes('服務代碼')), 595, 842, 1), /不是已支援/);
+});
+
+test('separates two vertically stacked packing tables, including each order\'s notes', () => {
+  const upper = packingFixture(), lower = packingFixture();
+  upper.add('上單留言', 110, 730);
+  lower.add('下單留言', 110, 730);
+  for (const [char, width] of lower.widths.get('test')!) upper.widths.get('test')!.set(char, width);
+  lower.runs = lower.runs.map(run => ({ ...run, y: run.y - 421, str: run.str.replace('261106TEST001', '261106TEST002') }));
+  const runs = [...lower.runs, ...upper.runs];
+  assert.equal(incomingPageKind(runs, 842), 'packing');
+  const orders = parseStandalonePackingPages(runs, upper.widths, 595, 842, 1);
+  assert.deepEqual(orders.map(o => o.id), ['261106TEST001', '261106TEST002']);
+  assert.deepEqual(orders.map(o => o.buyerNote), ['上單留言', '下單留言']);
+  assert.deepEqual(orders[0].products, orders[1].products);
+  assert.throws(() => parseStandalonePackingPages(runs.filter(r => !(r.y < 421 && r.str === '數量')), upper.widths, 595, 842, 1), /商品表格/);
+  assert.throws(() => parseStandalonePackingPages(runs.filter(r => !(r.y < 421 && r.str === '買家備註:')), upper.widths, 595, 842, 1), /表格結尾/);
+  assert.throws(() => parseStandalonePackingPages([...runs, {...runs[0], y: 420}], upper.widths, 595, 842, 1), /跨越格線/);
 });
 
 test('package 1 does not absorb numeric carrier text from a separate PDF item', () => {

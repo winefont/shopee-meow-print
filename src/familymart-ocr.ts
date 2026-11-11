@@ -38,13 +38,23 @@ export function createFamilyMartReader(factory?: () => Promise<Worker>) {
         const { data } = await ocr.recognize(image, {}, { text: true, blocks: true });
         const lines = data.blocks?.flatMap(block => block.paragraphs.flatMap(paragraph => paragraph.lines)) ?? [];
         const identity = readFamilyMartIdentity(lines);
-        const b = identity.value.bbox, left = Math.max(0, b.x0 - 8), top = Math.max(0, b.y0 - 6);
         await ocr.setParameters({ tessedit_pageseg_mode: '7' as import('tesseract.js').PSM,
           tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' });
-        const confirmed = await ocr.recognize(image, { rectangle: { left, top,
-          width: Math.min(crop.width, b.x1 + 8) - left, height: Math.min(crop.height, b.y1 + 6) - top } });
-        return { orderId: verifyFamilyMartId(identity.orderId, confirmed.data.text, confirmed.data.confidence),
-          tracking: '', recipient: '', layout: 'familymart' as const, labelIndex: cell.labelIndex };
+        // A tight rectangle in the full label can add characters or depress confidence.
+        // Read the unchanged ID pixels independently, with a source margin and white border.
+        const isolated = document.createElement('canvas');
+        try {
+          const b = identity.value.bbox, border = 24;
+          const x = Math.max(0, b.x0 - 2), y = Math.max(0, b.y0 - 2);
+          const w = Math.min(crop.width, b.x1 + 2) - x, h = Math.min(crop.height, b.y1 + 2) - y;
+          isolated.width = w + border * 2; isolated.height = h + border * 2;
+          const context = isolated.getContext('2d')!;
+          context.fillStyle = '#fff'; context.fillRect(0, 0, isolated.width, isolated.height);
+          context.drawImage(crop, x, y, w, h, border, border, w, h);
+          const confirmed = await ocr.recognize(isolated.toDataURL('image/png'));
+          return { orderId: verifyFamilyMartId(identity.orderId, confirmed.data.text, confirmed.data.confidence),
+            tracking: '', recipient: '', layout: 'familymart' as const, labelIndex: cell.labelIndex };
+        } finally { isolated.width = isolated.height = 0; }
       } catch (error) {
         if (error instanceof InputError) throw new InputError(error.issues.map(s => `${where}：${s}`));
         throw new InputError([`${where}：本機辨識無法完成，請重新開啟工具並確認使用完整新版安裝檔。本批未產生標籤。`]);

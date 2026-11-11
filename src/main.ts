@@ -39,7 +39,7 @@ app.innerHTML = `
         </div>
       </section>
     </div>
-    <footer class="page-footer"><span>蝦皮印單喵 v0.8.1</span><div class="footer-actions"><span id="offline-status" class="status-pill">本機處理</span><button id="install" class="quiet" hidden>安裝到桌面</button></div></footer>
+    <footer class="page-footer"><span>蝦皮印單喵 v0.8.2</span><div class="footer-actions"><span id="offline-status" class="status-pill">本機處理</span><button id="install" class="quiet" hidden>安裝到桌面</button></div></footer>
   </main>`;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;

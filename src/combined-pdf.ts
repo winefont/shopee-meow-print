@@ -1,12 +1,12 @@
 import { loadPdf, pdfjs } from './source-pdf';
 import { collectFontWidths } from './font-widths';
 import { InputError, type Pair } from './types';
-import { incomingPageKind, parseCombinedPage, parseStandalonePackingPage, parseStandaloneShippingPage, type TextRun } from './combined-layout';
+import { incomingPageKind, parseCombinedPage, parseStandalonePackingPages, parseStandaloneShippingPage, splitDocumentRuns, type TextRun } from './combined-layout';
 import { pairDocumentPages, type DocumentPage } from './pdf-pairing';
 import { findShippingInk } from './shipping-bounds';
 import { PDFDocument } from 'pdf-lib';
 import { pdfSelectionIssues } from './batch-files';
-import { findFamilyMartCells } from './familymart-grid';
+import { findA4LabelCells, FAMILY_POSITIONS } from './familymart-grid';
 import { createFamilyMartReader } from './familymart-ocr';
 
 async function readDocumentPages(bytes: Uint8Array, progress: (message: string) => void, pageOffset: number, fileName: string | undefined, family: ReturnType<typeof createFamilyMartReader>): Promise<DocumentPage[]> {
@@ -26,30 +26,45 @@ async function readDocumentPages(bytes: Uint8Array, progress: (message: string) 
       }] : []);
       const kind = incomingPageKind(runs, page.getViewport({ scale: 1 }).height);
       const isFamily = kind === 'shipping' && (!runs.some(run => run.str.trim()) || runs.some(run => /FamilyMart/i.test(run.str)));
+      const isSeven = kind === 'shipping' && runs.some(run => run.str.replace(/\s/g, '').includes('交貨便服務代碼'));
       const scale = isFamily ? 4 : 1.5;
       const viewport = page.getViewport({ scale });
       const width = viewport.width / scale, height = viewport.height / scale;
       const index = pageOffset + n - 1;
       if (kind === 'packing') {
-        const order = parseStandalonePackingPage(runs, collectFontWidths(await page.getOperatorList(), pdfjs.OPS), width, height, n);
-        pages.push({ kind, order, index, fileName });
+        const orders = parseStandalonePackingPages(runs, collectFontWidths(await page.getOperatorList(), pdfjs.OPS), width, height, n);
+        for (const order of orders) pages.push({ kind, order, index, fileName });
         page.cleanup();
         continue;
       }
-      if (kind === 'shipping' && isFamily) {
-        if (width < 560 || width > 630 || height < 790 || height > 880) throw new InputError([`PDF 第 ${n} 頁：全家請使用原始四格 A4 寄件單。`]);
+      if (kind === 'shipping' && (isFamily || isSeven)) {
+        const carrier = isFamily ? '全家' : '7-11';
+        if (width < 560 || width > 630 || height < 790 || height > 880) throw new InputError([`PDF 第 ${n} 頁：${carrier}請使用原始 A4 寄件單。`]);
         const canvas = document.createElement('canvas');
         canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
         try {
           const context = canvas.getContext('2d', { willReadFrequently: true });
-          if (!context) throw new InputError(['無法建立全家寄件單預覽。']);
+          if (!context) throw new InputError([`無法建立${carrier}寄件單預覽。`]);
           await page.render({ canvasContext: context, canvas, viewport, background: '#fff' }).promise;
           const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
           let cells;
-          try { cells = findFamilyMartCells(data, canvas.width, canvas.height, scale); }
+          try { cells = findA4LabelCells(data, canvas.width, canvas.height, scale, isFamily ? 'familymart' : 'seven-eleven'); }
           catch (error) { if (error instanceof InputError) throw new InputError(error.issues.map(issue => `PDF 第 ${n} 頁：${issue}`)); throw error; }
-          for (const cell of cells) {
-            const identity = await family.read(canvas, cell, n, progress);
+          const cellRuns = isSeven ? splitDocumentRuns(runs, cells.map(cell => {
+            const a = viewport.convertToPdfPoint(cell.region.left, cell.region.top);
+            const b = viewport.convertToPdfPoint(cell.region.right, cell.region.bottom);
+            return { left: a[0], top: a[1], right: b[0], bottom: b[1] };
+          }), n) : [];
+          for (const [cellIndex, cell] of cells.entries()) {
+            let identity;
+            if (isFamily) identity = await family.read(canvas, cell, n, progress);
+            else {
+              try { identity = { ...parseStandaloneShippingPage(cellRuns[cellIndex], width, height, n), labelIndex: cell.labelIndex }; }
+              catch (error) {
+                if (error instanceof InputError) throw new InputError(error.issues.map(issue => issue.replace(`PDF 第 ${n} 頁`, `PDF 第 ${n} 頁${FAMILY_POSITIONS[cell.labelIndex]}格`)));
+                throw error;
+              }
+            }
             const pad = 1.5 / 25.4 * 72 * scale;
             const a = viewport.convertToPdfPoint(Math.max(cell.region.left, cell.ink.left - pad), Math.max(cell.region.top, cell.ink.top - pad));
             const b = viewport.convertToPdfPoint(Math.min(cell.region.right, cell.ink.right + pad), Math.min(cell.region.bottom, cell.ink.bottom + pad));

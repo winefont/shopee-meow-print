@@ -1,3 +1,14 @@
+# v0.8.2 FamilyMart OCR and multi-label PDF validation - 2026-11-11
+
+- FamilyMart confirmation now reads unchanged ID pixels in a separate image with a small source margin and white border. The supplied page's browser confirmation previously inserted an extra character at confidence 53; both ID readings now match at confidence 83. Existing confidence thresholds and exact character matching remain unchanged.
+- Original 7-Eleven A4 sheets are separated by their carrier grid before reading each order ID, service code and named recipient. Original packing sheets with one table in each page half are parsed separately, including their notes. Nonblank unreadable cells, text crossing regions, incomplete tables, duplicate documents and missing counterparts still stop the whole batch.
+- All 36 automated tests, TypeScript checking and production/offline builds passed. Coverage includes the padded OCR image, conflicting/low-confidence confirmations, off-center and short cutting guides, cell isolation, two packing tables and notes, blank/unreadable cells, and existing matching/layout guards.
+- The final v0.8.2 production browser converted the supplied six-file batch into 22 orders / 44 pages / 28 product rows / 86 units. The PDF was downloaded through the browser. Independent pdfplumber extraction matched every product name, specification, SKU and quantity. All 64 barcode/QR occurrences in the 203 dpi output matched the 300 dpi source reference; every output page measures 100 x 150 mm. All pages were rendered, with a contact sheet and detailed FamilyMart and both 7-Eleven groups inspected.
+- Earlier single-label FamilyMart and 7-Eleven fixtures still produce two matched orders / four pages. Browser missing-packing and duplicate-shipping checks block the batch and clear the download link. Source PDFs, rendered previews and local receipts remain excluded from Git and the installer.
+- The v0.8.2 installer package scan passed with 298 archive entries and no configured private-identifier matches. All 294 manifest files match their hashes, and all 229 packaged application files match the tested build. The included Node runtime has a valid OpenJS Foundation signature. Installer code is unchanged. The user subsequently reported a successful installation and operation; the local installed manifest confirms v0.8.2 with state `complete`. A new automated installation lifecycle test was not run.
+
+No physical printer job was performed during validation.
+
 # v0.8.1 PDF-only workflow validation - 2026-11-09
 
 - Simplified the main screen and moved download instructions, pairing rules, printing guidance and privacy details into a separate local help page. Help is included in development, production, offline precaching and the installer from one HTML source.
